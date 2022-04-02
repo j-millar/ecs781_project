@@ -8,6 +8,7 @@ nltk.download("punkt")
 from nltk.sentiment import SentimentIntensityAnalyzer
 nltk.download('vader_lexicon')
 from langdetect import detect
+import numpy as np
 
 def setupclient(secretspath):
 	""" Setup twitter client """
@@ -21,7 +22,7 @@ def searchtweets(client, starttime, searchstring):
 	""" search for a string and return a list of cleaned tweets """
 	response = client.search_recent_tweets(
 		searchstring, 
-		start_time=starttime,
+		# start_time=starttime,
 		max_results=100
 		)
 	tweets = response.data
@@ -50,12 +51,22 @@ def getaveragesentiment(tweets):
 
 	return tweetsentiment
 
+def getpopularity(tweets, btc_tweets):
+
+	btc_popularity = 1/(btc_tweets[0].id - btc_tweets[-1].id)
+	popularity = (1 / (tweets[0].id - tweets[-1].id)) / btc_popularity
+
+	return popularity
+
 def main():
-	starttime = datetime.datetime.now() - datetime.timedelta(hours = 1)
+	starttime = datetime.datetime.now() - datetime.timedelta(hours = 2)
 	client = setupclient("./secrets.yaml")
 	clean_tweets = searchtweets(client, starttime, sys.argv[1])
+	btc_tweets = searchtweets(client, starttime, "bitcoin")
 	sentiment = getaveragesentiment(clean_tweets)
+	popularity = getpopularity(clean_tweets)
 	print(sentiment)
+	print(popularity)
 
 
 if __name__ == '__main__':
